@@ -1,0 +1,65 @@
+import requests
+import json
+
+def get_weather(city, date):
+    api_key = 'YOUR_API_KEY'  # Замініть на свій ключ API OpenWeatherMap
+
+    # Отримати координати міста
+    coordinates = get_coordinates(city)
+
+    if coordinates:
+        lat, lon = coordinates
+        weather_url = f'http://api.openweathermap.org/data/2.5/onecall/timemachine?lat={lat}&lon={lon}&dt={date}&appid={api_key}'
+
+        # Запит до API OpenWeatherMap
+        response = requests.get(weather_url)
+        data = json.loads(response.text)
+
+        # Перевірка наявності даних погоди
+        if 'current' in data:
+            weather_info = data['current']['weather'][0]['description']
+            temperature = data['current']['temp']
+            humidity = data['current']['humidity']
+
+            # Виведення результатів
+            print(f'Погода в {city} на {get_formatted_date(date)}:')
+            print(f'Опис: {weather_info}')
+            print(f'Температура: {convert_temperature(temperature)}')
+            print(f'Вологість: {humidity}%')
+        else:
+            print('Помилка отримання даних погоди.')
+    else:
+        print('Місто не знайдено.')
+
+def get_coordinates(city):
+    api_key = 'YOUR_API_KEY'  # Замініть на свій ключ API OpenWeatherMap
+
+    geocoding_url = f'http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={api_key}'
+
+    # Запит до API OpenWeatherMap для отримання координат міста
+    response = requests.get(geocoding_url)
+    data = json.loads(response.text)
+
+    # Перевірка наявності координат
+    if data:
+        lat = data[0]['lat']
+        lon = data[0]['lon']
+        return lat, lon
+    else:
+        return None
+
+def get_formatted_date(date):
+    formatted_date = date.strftime("%d-%m-%Y")  # Форматування дати
+    return formatted_date
+
+def convert_temperature(kelvin):
+    celsius = kelvin - 273.15  # Конвертація з Кельвіна в Цельсій
+    return f'{celsius:.2f}°C'
+
+# Приклад використання
+from datetime import datetime
+
+city = 'Київ'
+date = datetime(2022, 6, 5)  # Задана дата
+
+get_weather(city, int(date.timestamp()))
